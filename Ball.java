@@ -1,3 +1,8 @@
+
+import java.io.File;
+
+import javax.sound.sampled.*;
+
 /**
  * Models a simple solid sphere. 
  * This class represents a Ball object. When combined with the GameArena class,
@@ -5,6 +10,8 @@
  */
 public class Ball 
 {
+
+
 	// The following instance variables define the
 	// information needed to represent a Ball
 	// Feel free to more instance variables if you think it will 
@@ -246,14 +253,16 @@ public class Ball
 		double x = xPosition - mallet.getXPosition();
 		double y = yPosition - mallet.getYPosition();
 		
-
 		//checks if the puck is heading towards the mallet
-		if((x * xV + y * yV)/ (x*x + y*y) < 0){
+		if((x * xV + y * yV)/ (x*x + y*y) <= 0){
 
 			//c just makes the equations simpler
 			double c = 2 * (x * yV - y * xV) / (x*x + y*y);
 			xVelocity = mallet.getXVelocity() -xV - y * c;
 			yVelocity = mallet.getYVelocity() -yV + x * c;
+			
+			hitNoise((float)(((x * xV + y * yV)/ (x*x + y*y)) * -400));
+
 
 		}
 		
@@ -267,7 +276,7 @@ public class Ball
 	 * accelerates and moves the ball according Velocity
 	 */
 	public void tick(){
-		//accelerates
+		//acceleratesa
 		xPosition += xVelocity;
 		yPosition += yVelocity;
 		
@@ -276,20 +285,68 @@ public class Ball
 		xVelocity = xVelocity * (100 - friction)/100;
 		yVelocity = yVelocity * (100 - friction)/100;
 
+
+
 		//bounce
-		if((xPosition >= 950 - size/2 && xVelocity >= 0) 
-		|| (xPosition <= 50 + size/2 && xVelocity <= 0 )){
-			
+		boolean notGoal = (yPosition > 354 || yPosition < 146) && xPosition > 10 && xPosition < 990;
+
+		if(xPosition > 950 - size/2 && xVelocity >= 0 && notGoal){
 			xVelocity = -xVelocity * (100 - dissipation)/100;
+			xPosition = 950 - size/2 ;
+			hitNoise((float)(xVelocity * -8));
 
 		}
-
-		if((yPosition >= 450 - size/2 && yVelocity >= 0) 
-		|| (yPosition <= 50 + size/2 && yVelocity <= 0 )){
+		
+		if(xPosition < 50 + size/2 && xVelocity <= 0  && notGoal){
+			xVelocity = -xVelocity * (100 - dissipation)/100;
+			xPosition = 50 + size/2;			
 			
-			yVelocity = -yVelocity * (100 - dissipation)/100;
+			hitNoise((float)(xVelocity * 8));
+
 
 		}
+
+		if(yPosition > 450 - size/2 && yVelocity >= 0){
+			yVelocity = -yVelocity * (100 - dissipation)/100;
+			yPosition = 450 - size/2;
+			hitNoise((float)(yVelocity * -8));
+
+		}
+		if(yPosition < 50 + size/2 && yVelocity <= 0 ){	
+			yVelocity = -yVelocity * (100 - dissipation)/100;
+			yPosition = 50 + size/2;
+			//hitNoise((float)(yVelocity * 8));
+
+		}
+
+	}
+
+	/**
+	 * playes the hit noise
+	 * @param volume loudnes of the sound 0 being silent 80 being max
+	 */
+	public void hitNoise(float volume){
+
+			if(volume > 80) volume = 80;
+			volume = volume/2 + 40;
+			System.out.println(volume);
+			
+			try {
+				File soundFile = new File("bounce.wav");
+				if (!soundFile.exists()) {
+					System.err.println("Error: File not found: " + soundFile.getAbsolutePath());
+					return;
+				}
+				AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(soundFile);
+				Clip clip = AudioSystem.getClip();
+				clip.open(audioInputStream);
+
+				FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+            	gainControl.setValue(volume-80f);
+				clip.start();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 
 	}
 }
