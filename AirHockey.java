@@ -1,28 +1,16 @@
 import java.util.spi.ToolProvider;
 import java.io.*;
 import javax.sound.sampled.*;
+
+import java.io.File;
+
+
 import java.util.Random;
 
 public class AirHockey{
         public static void main(String[] arguments){
             
             Random rand = new Random(); 
-
-            try
-            {
-                Clip clip = AudioSystem.getClip();
-                clip.open(AudioSystem.getAudioInputStream(new File("hit.wav")));
-                clip.start();
-                while (!clip.isRunning())
-                    Thread.sleep(10);
-                while (clip.isRunning())
-                    Thread.sleep(10);
-                clip.close();
-            }
-            catch (Exception exc)
-            {
-                exc.printStackTrace(System.out);
-            }
 
 
             
@@ -33,10 +21,36 @@ public class AirHockey{
             double colisionYVelocity;
             double magnitude1;
 
-            drawTable(game);
+
+            String goalsToWin = "5";
+
+            //count of the number of game ticks
+            int count = 0;
+            //the count that the goal was scored on
+            int goalOn = 0;//saves the tic that the goal was scored on
+            boolean goal = false;//true when a goal is scored
+            boolean gameOver = false;
+            double newPuckX = 0;//saves the X position where the puck should go after a goal
+            boolean pPrePressed = false; //used to detect when 'p' is presed 
+            boolean mPrePressed = false; //used to detect when 'm' is presed 
+            boolean centre = false; //true if centre is puck
+
+            //Middle
+            Ball whiteMiddle = new Ball(500,250, 204, "WHITE");
+            Ball blackMiddle = new Ball(500,250, 200, "BLACK");
+
+            drawTable(game, whiteMiddle, blackMiddle);
+
 
             Text redScore = new Text("0", 200, 200, 320, "DARKGREY");
             Text blueScore = new Text("0", 200, 660, 320, "DARKGREY");
+            Text winner = new Text("", 140, 300, 170, "BLUE");
+            Text wins = new Text("", 90, 350, 290, "WHITE");
+            Text restart = new Text("", 30, 275, 400, "WHITE");//new Text(", 50, 300, 700, "WHITE");
+
+            game.addText(winner);
+            game.addText(wins);
+            game.addText(restart);
 
             game.addText(redScore);
             game.addText(blueScore);
@@ -65,10 +79,13 @@ public class AirHockey{
 
             blueMallet.setFriction(10);
             redMallet.setFriction(10);
+            blueMallet.setDissapation(80);
+            redMallet.setDissapation(80);
+
             puck.setFriction(1);
 
             while (true){
-
+                count += 1;
 
 
                 //moving the blue mallet to its side
@@ -93,31 +110,151 @@ public class AirHockey{
                 if(puck.collides(bottomRed)) puck.deflectOff(bottomRed);
 
                 //confines the blue mallet to its side
-                if(blueMallet.getXPosition() + blueMallet.getXVelocity() > 900) {blueMallet.setXPosition((900)); blueMallet.setXVelocity(0);}
-                if(blueMallet.getXPosition() + blueMallet.getXVelocity() < 550) {blueMallet.setXPosition((550)); blueMallet.setXVelocity(0);}
+                if(blueMallet.getXPosition() > 950 - blueMallet.getSize()/2) {blueMallet.setXPosition((950 - blueMallet.getSize()/2)); blueMallet.setXVelocity(0);}
+                if(blueMallet.getXPosition() < 500 + blueMallet.getSize()/2) {blueMallet.setXPosition((500 + blueMallet.getSize()/2)); blueMallet.setXVelocity(0);}
 
-                if(blueMallet.getYPosition() + blueMallet.getYVelocity() > 400) {blueMallet.setYPosition((400)); blueMallet.setYVelocity(0);}
-                if(blueMallet.getYPosition() + blueMallet.getYVelocity() < 100) {blueMallet.setYPosition((100)); blueMallet.setYVelocity(0);}
-
-
-
-                //confines the red mallet to its side
-                if(redMallet.getXPosition() + redMallet.getXVelocity() > 450) {redMallet.setXPosition((450)); redMallet.setXVelocity(0);}
-                if(redMallet.getXPosition() + redMallet.getXVelocity() < 100) {redMallet.setXPosition((100)); redMallet.setXVelocity(0);}
-
-                if(redMallet.getYPosition() + redMallet.getYVelocity() > 400) {redMallet.setYPosition((400)); redMallet.setYVelocity(0);}
-                if(redMallet.getYPosition() + redMallet.getYVelocity() < 100) {redMallet.setYPosition((100)); redMallet.setYVelocity(0);}
+                if(blueMallet.getYPosition()  > 450 - blueMallet.getSize()/2) {blueMallet.setYPosition((450 - blueMallet.getSize()/2)); blueMallet.setYVelocity(0);}
+                if(blueMallet.getYPosition()  < 50 + blueMallet.getSize()/2) {blueMallet.setYPosition((50 + blueMallet.getSize()/2)); blueMallet.setYVelocity(0);}
 
 
 
+                //confines the red mallet to its sideS
+                if(redMallet.getXPosition() > 500 - redMallet.getSize()/2) {redMallet.setXPosition((500 - redMallet.getSize()/2)); redMallet.setXVelocity(0);}
+                if(redMallet.getXPosition() < 50 + redMallet.getSize()/2) {redMallet.setXPosition((50 + redMallet.getSize()/2)); redMallet.setXVelocity(0);}
+
+                if(redMallet.getYPosition() > 450 - redMallet.getSize()/2) {redMallet.setYPosition((450 - redMallet.getSize()/2)); redMallet.setYVelocity(0);}
+                if(redMallet.getYPosition() < 50 + redMallet.getSize()/2) {redMallet.setYPosition((50 + redMallet.getSize()/2)); redMallet.setYVelocity(0);}
+
+
+                //check for Goals
+                if(!goal && puck.getXPosition() > 955){
+                    goalNoise();
+                    redScore.setText(Integer.toString(Integer.parseInt(redScore.getText())+1));
+                    newPuckX = 600;
+                    goal = true;
+                    goalOn = count;
+                }
+                if(!goal && puck.getXPosition() < 45){
+                    goalNoise();
+                    blueScore.setText(Integer.toString(Integer.parseInt(blueScore.getText())+1));
+                    newPuckX = 400;
+                    goal = true;
+                    goalOn = count;
+                }
+                
+                //reset positoins after goalS
+                if (goal && count == goalOn + 50 && !gameOver){
+                    goal = false;
+                    puck.setXPosition(newPuckX);
+                    puck.setYPosition(248 + rand.nextInt(2)*4);
+                    puck.setXVelocity(0);
+                    puck.setYVelocity(0);
+                    blueMallet.setXPosition(750);
+                    blueMallet.setYPosition(250);
+                    blueMallet.setXVelocity(0);
+                    blueMallet.setYVelocity(0);
+                    redMallet.setXPosition(250);
+                    redMallet.setYPosition(250);
+                    redMallet.setXVelocity(0);
+                    redMallet.setYVelocity(0);
+                    
+                }
+                //check if game won
+                if(!gameOver && goal && ((blueScore.getText().equals(goalsToWin))|| redScore.getText().equals(goalsToWin))){
+                    winNoise();
+                    blueScore.setColour("WHITE");
+                    redScore.setColour("WHITE");
+                    gameOver = true;
+
+                    if(blueScore.getText().equals(goalsToWin)){
+                        winner.setColour("BLUE");
+                        winner.setText("BLUE");
+                    }
+                    if(redScore.getText().equals(goalsToWin)){
+                        winner.setColour("RED");
+                        winner.setText(" RED");
+                    }
+                    wins.setText("WINS!");;
+                    restart.setText("PRESS [ENTER] TO RESTART");
+                }
+
+                //restart game
+                if (gameOver && game.enterPressed()){
+                    gameOver = false;
+                    goal = false;
+                    winner.setText("");
+                    wins.setText("");
+                    restart.setText("");
+                    redScore.setText("0");
+                    blueScore.setText("0");
+                    redScore.setColour("DARKGREY");
+                    blueScore.setColour("DARkGREY");
+                    redMallet.setXPosition(250);
+                    blueMallet.setXPosition(750);
+                    redMallet.setYPosition(250);
+                    blueMallet.setYPosition(250);
+                    puck.setXPosition(500);
+                    puck.setYPosition(248 + rand.nextInt(2)*4);
+                    puck.setXVelocity(0);
+                    puck.setYVelocity(0);
+                    blueMallet.setXVelocity(0);
+                    blueMallet.setYVelocity(0);
+                    redMallet.setXVelocity(0);
+                    redMallet.setYVelocity(0);
+                }
+
+                //cheat codes
+
+                //swap with puck
+                if(game.letterPressed('p') && !pPrePressed){
+                   
+                   
+                    Ball temp;
+                    pPrePressed = true;
+                    if(puck.getXPosition() < 500 - puck.getSize()/2){
+                        temp = redMallet;
+                        redMallet = puck;
+                        puck = temp;
+                    }
+                    if(puck.getXPosition() > 500 + puck.getSize()/2){
+                        System.out.println("swap");
+                        temp = blueMallet;
+                        blueMallet = puck;
+                        puck = temp;
+                    }
+                
+
+                }
+
+                if(!game.letterPressed('p'))pPrePressed = false;
+                //give middle colisions
+                if(game.letterPressed('m') && !mPrePressed){
+                    mPrePressed =true;
+
+                    if(centre)centre = false;
+                    else centre = true;
+                    Ball temp = whiteMiddle;
+                    whiteMiddle = puck;
+                    puck = temp;
+                }
+                if(!game.letterPressed('m'))mPrePressed = false;
+
+                if (centre){
+                    blackMiddle.setXPosition(puck.getXPosition() + puck.getXVelocity());
+                    blackMiddle.setYPosition(puck.getYPosition() + puck.getYVelocity());
+
+                }
 
 
                 blueMallet.tick();
                 redMallet.tick();
                 puck.tick();
+
                 game.pause();
 
             }
+
+
 
 
 
@@ -131,15 +268,16 @@ public class AirHockey{
          * Draws the table and lines on th interface
          * @param game the game Arena where it will be drawn
          */
-        private static void drawTable(GameArena game){
+        private static void drawTable(GameArena game, Ball whiteMiddle, Ball blackMiddle){
             //Border
             game.addRectangle(new Rectangle(40,40,460,420,"RED"));
             game.addRectangle(new Rectangle(500,40,460,420,"BLUE"));
             game.addRectangle(new Rectangle(50,50,900,400,"BLACK"));
 
-            //Middel            
-            game.addBall(new Ball(500,250, 204, "WHITE"));
-            game.addBall(new Ball(500,250, 200, "BLACK"));
+
+
+            game.addBall(whiteMiddle);
+            game.addBall(blackMiddle);
             game.addLine(new Line(500,40, 500, 460, 2, "WHITE"));
 
             //goals
@@ -156,5 +294,54 @@ public class AirHockey{
 
 
         }
+        /**
+         * plays the goal noise
+         */
+        private static void goalNoise(){
+
+
+			
+			try {
+				File soundFile = new File("fanfare.wav");
+				if (!soundFile.exists()) {
+					System.err.println("Error: File not found: " + soundFile.getAbsolutePath());
+					return;
+				}
+				AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(soundFile);
+				Clip clip = AudioSystem.getClip();
+				clip.open(audioInputStream);
+				FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+            	gainControl.setValue(0);
+				clip.start();
+			} catch (Exception e) {
+				e.printStackTrace();
+		    }
+
+	    }
+
+        /*
+         * plays the win noise
+         */
+        private static void winNoise(){
+
+
+			
+			try {
+				File soundFile = new File("applause.wav");
+				if (!soundFile.exists()) {
+					System.err.println("Error: File not found: " + soundFile.getAbsolutePath());
+					return;
+				}
+				AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(soundFile);
+				Clip clip = AudioSystem.getClip();
+				clip.open(audioInputStream);
+				FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+            	gainControl.setValue(0);
+				clip.start();
+			} catch (Exception e) {
+				e.printStackTrace();
+		    }
+        }
+
     
 }

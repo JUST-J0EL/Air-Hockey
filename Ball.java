@@ -208,6 +208,14 @@ public class Ball
 		colour = c;
 	}
 
+	/**
+	 * sets the disapation(the energy lost on collision)
+	 * @param d the new disapation
+	 */
+	public void setDissapation(int d)
+	{
+		dissipation = d;
+	}
 
 
 	/**
@@ -315,7 +323,7 @@ public class Ball
 		if(yPosition < 50 + size/2 && yVelocity <= 0 ){	
 			yVelocity = -yVelocity * (100 - dissipation)/100;
 			yPosition = 50 + size/2;
-			//hitNoise((float)(yVelocity * 8));
+			hitNoise((float)(yVelocity * 8));
 
 		}
 
@@ -327,9 +335,11 @@ public class Ball
 	 */
 	public void hitNoise(float volume){
 
+			
+
+
 			if(volume > 80) volume = 80;
 			volume = volume/2 + 40;
-			System.out.println(volume);
 			
 			try {
 				File soundFile = new File("bounce.wav");

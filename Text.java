@@ -87,6 +87,8 @@ public class Text
 		return layer;
 	}
 
+
+
 	/**
 	 * Constructor. Creates a new piece of text at the given coordinates.
 	 *
