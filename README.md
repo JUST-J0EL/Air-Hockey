@@ -20,6 +20,7 @@ This repository contains the following files for the SCC.110 project "Air Hockey
 + Red Mallet: WASD
 + Blue Mallet Arrow keys
 + restart a new game with the space bar
++ sound on/off: 'v'
 
 **functionality**
 + puck collides with mallets and walls in a realistic way.

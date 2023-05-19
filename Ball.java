@@ -252,7 +252,7 @@ public class Ball
 	 * Calculates and changes the balls tragectory from coliding with a mallet
 	 * @param mallet the mallet that the puck is deflected off
 	 */
-	public void deflectOff(Ball mallet){
+	public void deflectOff(Ball mallet, boolean sound){
 
 		//gets relative velocity to the mallet
 		double xV = xVelocity - mallet.getXVelocity();
@@ -269,7 +269,7 @@ public class Ball
 			xVelocity = mallet.getXVelocity() -xV - y * c;
 			yVelocity = mallet.getYVelocity() -yV + x * c;
 			
-			hitNoise((float)(((x * xV + y * yV)/ (x*x + y*y)) * -400));
+			if(sound)hitNoise((float)(((x * xV + y * yV)/ (x*x + y*y)) * -400));
 
 
 		}
@@ -283,7 +283,7 @@ public class Ball
 	/**
 	 * accelerates and moves the ball according Velocity
 	 */
-	public void tick(){
+	public void tick(boolean sound){
 		//acceleratesa
 		xPosition += xVelocity;
 		yPosition += yVelocity;
@@ -301,7 +301,7 @@ public class Ball
 		if(xPosition > 950 - size/2 && xVelocity >= 0 && notGoal){
 			xVelocity = -xVelocity * (100 - dissipation)/100;
 			xPosition = 950 - size/2 ;
-			hitNoise((float)(xVelocity * -8));
+			if(sound)hitNoise((float)(xVelocity * -8));
 
 		}
 		
@@ -309,7 +309,7 @@ public class Ball
 			xVelocity = -xVelocity * (100 - dissipation)/100;
 			xPosition = 50 + size/2;			
 			
-			hitNoise((float)(xVelocity * 8));
+			if(sound)hitNoise((float)(xVelocity * 8));
 
 
 		}
@@ -317,13 +317,13 @@ public class Ball
 		if(yPosition > 450 - size/2 && yVelocity >= 0){
 			yVelocity = -yVelocity * (100 - dissipation)/100;
 			yPosition = 450 - size/2;
-			hitNoise((float)(yVelocity * -8));
+			if(sound)hitNoise((float)(yVelocity * -8));
 
 		}
 		if(yPosition < 50 + size/2 && yVelocity <= 0 ){	
 			yVelocity = -yVelocity * (100 - dissipation)/100;
 			yPosition = 50 + size/2;
-			hitNoise((float)(yVelocity * 8));
+			if(sound)hitNoise((float)(yVelocity * 8));
 
 		}
 

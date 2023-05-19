@@ -33,6 +33,8 @@ public class AirHockey{
             double newPuckX = 0;//saves the X position where the puck should go after a goal
             boolean pPrePressed = false; //used to detect when 'p' is presed 
             boolean mPrePressed = false; //used to detect when 'm' is presed 
+            boolean vPrePressed = false; //used to detect when 'v' is presed 
+            boolean sound = true;
             boolean centre = false; //true if centre is puck
 
             //Middle
@@ -101,13 +103,13 @@ public class AirHockey{
                 if(game.letterPressed('s')) redMallet.accelerateY(malletSpeed);
                 
                 //Mallet colisions
-                if(puck.collides(blueMallet)) puck.deflectOff(blueMallet);
-                if(puck.collides(redMallet)) puck.deflectOff(redMallet);
+                if(puck.collides(blueMallet)) puck.deflectOff(blueMallet, sound);
+                if(puck.collides(redMallet)) puck.deflectOff(redMallet, sound);
                 //Goal post colisions
-                if(puck.collides(topBlue)) puck.deflectOff(topBlue);
-                if(puck.collides(bottomBlue)) puck.deflectOff(bottomBlue);
-                if(puck.collides(topRed)) puck.deflectOff(topRed);
-                if(puck.collides(bottomRed)) puck.deflectOff(bottomRed);
+                if(puck.collides(topBlue)) puck.deflectOff(topBlue, sound);
+                if(puck.collides(bottomBlue)) puck.deflectOff(bottomBlue, sound);
+                if(puck.collides(topRed)) puck.deflectOff(topRed, sound);
+                if(puck.collides(bottomRed)) puck.deflectOff(bottomRed, sound);
 
                 //confines the blue mallet to its side
                 if(blueMallet.getXPosition() > 950 - blueMallet.getSize()/2) {blueMallet.setXPosition((950 - blueMallet.getSize()/2)); blueMallet.setXVelocity(0);}
@@ -128,14 +130,14 @@ public class AirHockey{
 
                 //check for Goals
                 if(!goal && puck.getXPosition() > 955){
-                    goalNoise();
+                    if(sound)goalNoise();
                     redScore.setText(Integer.toString(Integer.parseInt(redScore.getText())+1));
                     newPuckX = 600;
                     goal = true;
                     goalOn = count;
                 }
                 if(!goal && puck.getXPosition() < 45){
-                    goalNoise();
+                    if(sound)goalNoise();
                     blueScore.setText(Integer.toString(Integer.parseInt(blueScore.getText())+1));
                     newPuckX = 400;
                     goal = true;
@@ -161,7 +163,7 @@ public class AirHockey{
                 }
                 //check if game won
                 if(!gameOver && goal && ((blueScore.getText().equals(goalsToWin))|| redScore.getText().equals(goalsToWin))){
-                    winNoise();
+                    if(sound)winNoise();
                     blueScore.setColour("WHITE");
                     redScore.setColour("WHITE");
                     gameOver = true;
@@ -227,6 +229,8 @@ public class AirHockey{
                 }
 
                 if(!game.letterPressed('p'))pPrePressed = false;
+
+
                 //give middle colisions
                 if(game.letterPressed('m') && !mPrePressed){
                     mPrePressed =true;
@@ -245,10 +249,20 @@ public class AirHockey{
 
                 }
 
+                //give middle colisions
+                if(game.letterPressed('v') && !vPrePressed){
+                    vPrePressed =true;
 
-                blueMallet.tick();
-                redMallet.tick();
-                puck.tick();
+                    if(sound)sound = false;
+                    else sound = true;
+                }
+                if(!game.letterPressed('v'))vPrePressed = false;
+                
+
+
+                blueMallet.tick(sound);
+                redMallet.tick(sound);
+                puck.tick(sound);
 
                 game.pause();
 
